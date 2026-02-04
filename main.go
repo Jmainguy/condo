@@ -152,97 +152,6 @@ func initializeHTTPClient(config ServerConfig) error {
 	return loginWithClient()
 }
 
-func discoverAvailableYears(client *http.Client, property string) ([]string, error) {
-	currentYear := time.Now().Year()
-	calendarURL := fmt.Sprintf("https://elliottowner.com/calendar.php?property=%s&year=%d", property, currentYear)
-
-	resp, err := client.Get(calendarURL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch calendar page: %w", err)
-	}
-	defer func() {
-		if err := resp.Body.Close(); err != nil {
-			log.Printf("Warning: failed to close response body: %v", err)
-		}
-	}()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response body: %w", err)
-	}
-
-	// Save HTML for debugging
-	if err := os.WriteFile("calendar_years_debug.html", body, 0644); err != nil {
-		log.Printf("Warning: failed to save debug HTML: %v", err)
-	}
-
-	// Look for year options in HTML
-	// Match patterns like: calendar.php?property=...&year=2024 or year=2024
-	yearPattern := regexp.MustCompile(`[?&]year=(\d{4})`)
-	matches := yearPattern.FindAllStringSubmatch(string(body), -1)
-
-	yearsMap := make(map[string]bool)
-	for _, match := range matches {
-		if len(match) > 1 {
-			year := match[1]
-			// Parse year as integer and validate range
-			var yearNum int
-			if _, err := fmt.Sscanf(year, "%d", &yearNum); err == nil {
-				// Only include reasonable years (2020-2030)
-				if yearNum >= 2020 && yearNum <= 2030 {
-					yearsMap[year] = true
-				}
-			}
-		}
-	}
-
-	// Convert map to sorted slice
-	years := make([]string, 0, len(yearsMap))
-	for year := range yearsMap {
-		years = append(years, year)
-	}
-
-	// Sort years
-	for i := 0; i < len(years); i++ {
-		for j := i + 1; j < len(years); j++ {
-			if years[i] > years[j] {
-				years[i], years[j] = years[j], years[i]
-			}
-		}
-	}
-
-	if len(years) == 0 {
-		// Fallback to reasonable default range if parsing fails
-		log.Println("Warning: Could not discover years from portal, using default range")
-		currentYear := time.Now().Year()
-		var fallbackYears []string
-		for year := 2023; year <= currentYear+1; year++ {
-			fallbackYears = append(fallbackYears, fmt.Sprintf("%d", year))
-		}
-		return fallbackYears, nil
-	}
-
-	// Always ensure 2023 is included (when rentals started)
-	has2023 := false
-	for _, year := range years {
-		if year == "2023" {
-			has2023 = true
-			break
-		}
-	}
-	if !has2023 {
-		// Prepend 2023 to the list
-		years = append([]string{"2023"}, years...)
-	}
-
-	log.Printf("Discovered available years: %v", years)
-	return years, nil
-}
-
 func loginWithClient() error {
 	cache.mu.RLock()
 	client := cache.httpClient
@@ -649,7 +558,9 @@ func handleDebugReservationReport(w http.ResponseWriter, r *http.Request) {
 
 	// Return HTML for inspection
 	w.Header().Set("Content-Type", "text/html")
-	w.Write(body)
+	if _, err := w.Write(body); err != nil {
+		log.Printf("Warning: failed to write response: %v", err)
+	}
 	log.Printf("Reservation report saved to %s and returned", filename)
 }
 
