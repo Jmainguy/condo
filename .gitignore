@@ -1,0 +1,33 @@
+# Binaries
+elliot
+condo
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+
+# Output files
+calendar.html
+login_response.html
+events_debug.json
+server.log
+
+# Go workspace
+go.work
+go.work.sum
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+# Secrets
+k8s-secret.yaml

@@ -1,0 +1,115 @@
+version: 2
+env:
+  - GO111MODULE=on
+
+# Use different dist directory to avoid conflict with frontend build
+dist: goreleaser-dist
+
+# Allow dirty git state since we build frontend assets in CI
+git:
+  ignore_tags:
+    - nightly
+  
+snapshot:
+  version_template: "{{ .Tag }}-next"
+
+before:
+  hooks:
+    - go mod tidy
+builds:
+- binary: condo
+  main: ./main.go
+  env:
+  - CGO_ENABLED=0
+  goos:
+    - linux
+  goarch:
+    - amd64
+    - arm64
+
+checksum:
+  name_template: 'checksums.txt'
+changelog:
+  sort: asc
+  filters:
+    exclude:
+    - '^docs:'
+    - '^test:'
+
+kos:
+  - 
+    # Main path to build.
+    # It must be a relative path
+    #
+    # Default: build.main.
+    main: .
+
+    # Working directory used to build.
+    #
+    # Default: build.dir.
+    working_dir: .
+
+    # Base image to publish to use.
+    #
+    # Default: 'cgr.dev/chainguard/static'.
+    base_image: chainguard/wolfi-base
+
+    # Repositories to push to (uses new plural format)
+    # Can also be set via KO_DOCKER_REPO environment variable
+    repositories:
+      - zot.soh.re/condo
+
+    # Platforms to build and publish.
+    #
+    # Default: 'linux/amd64'.
+    platforms:
+      - linux/amd64
+      - linux/arm64
+
+    # Tag to build and push.
+    # Empty tags are ignored.
+    #
+    # Default: 'latest'.
+    # Templates: allowed.
+    tags:
+      - latest
+      - "{{.Tag}}"
+
+    # Creation time given to the image
+    # in seconds since the Unix epoch as a string.
+    #
+    # Templates: allowed.
+    creation_time: "{{.CommitTimestamp}}"
+
+    # Creation time given to the files in the kodata directory
+    # in seconds since the Unix epoch as a string.
+    #
+    # Templates: allowed.
+    ko_data_creation_time: "{{.CommitTimestamp}}"
+
+    # SBOM format to use.
+    #
+    # Default: 'spdx'.
+    # Valid options are: spdx and none.
+    sbom: none
+
+    labels:
+      org.opencontainers.image.created: "{{.Date}}"
+      org.opencontainers.image.title: "{{.ProjectName}}"
+      org.opencontainers.image.revision: "{{.FullCommit}}"
+      org.opencontainers.image.version: "{{.Version}}"
+      org.opencontainers.image.authors: "Jonathan Seth Mainguy <jon@jmainguy.com>"
+      org.opencontainers.image.vendor: Mainguy
+      org.opencontainers.image.url: "https://github.com/jmainguy/condo"
+      org.opencontainers.image.source: "https://github.com/jmainguy/condo"
+      org.opencontainers.image.description: "Myrtle Beach condo availability calendar - Elliott Owner Portal scraper"
+      org.opencontainers.image.licenses: "GPL-2.0"
+      
+    # Bare uses a tag on the $KO_DOCKER_REPO without anything additional.
+    bare: true
+
+    # Whether to preserve the full import path after the repository name.
+    preserve_import_paths: false
+
+    # Whether to use the base path without the MD5 hash after the repository name.
+    base_import_paths: true
