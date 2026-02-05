@@ -122,7 +122,7 @@ func main() {
 	http.Handle("/", http.FileServer(http.FS(staticFS)))
 
 	addr := "0.0.0.0:" + config.Port
-	log.Printf("Server starting on http://0.0.0.0%s", addr)
+	log.Printf("Server starting on http://%s", addr)
 	log.Fatal(http.ListenAndServe(addr, nil))
 }
 

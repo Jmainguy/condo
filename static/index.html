@@ -70,6 +70,15 @@
         .calendar-day {
             position: relative;
         }
+        .split-day-checkout {
+            background: linear-gradient(135deg, var(--checkout-color) 0%, var(--checkout-color) 50%, transparent 50%, transparent 100%) !important;
+        }
+        .split-day-checkin {
+            background: linear-gradient(135deg, transparent 0%, transparent 50%, var(--checkin-color) 50%, var(--checkin-color) 100%) !important;
+        }
+        .split-day-both {
+            background: linear-gradient(135deg, var(--checkout-color) 0%, var(--checkout-color) 50%, var(--checkin-color) 50%, var(--checkin-color) 100%) !important;
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -102,6 +111,23 @@
             <p class="text-sm text-gray-600 mt-3">
                 To book available dates, please contact <span class="font-semibold">Jonathan</span> or <span class="font-semibold">Annette</span>
             </p>
+            
+            <!-- Check-in/out Times Notice -->
+            <div class="max-w-2xl mx-auto mt-3 p-3 bg-green-50 border border-green-300 rounded-lg">
+                <p class="text-sm text-green-900">
+                    ⏰ <span class="font-semibold">Check-out: 10:00 AM</span> | <span class="font-semibold">Check-in: 3:00 PM</span>
+                </p>
+                <p class="text-xs text-green-800 mt-1">
+                    Days show checkout (top-left) and check-in (bottom-right) separately.
+                </p>
+            </div>
+            
+            <!-- Busy Season Notice -->
+            <div class="max-w-2xl mx-auto mt-3 p-3 bg-blue-50 border border-blue-300 rounded-lg">
+                <p class="text-sm text-blue-900">
+                    🌊 <span class="font-semibold">Busy Season:</span> Memorial Day through Labor Day
+                </p>
+            </div>
             
             <!-- Important Check-in Notice -->
             <div class="max-w-2xl mx-auto mt-4 p-4 bg-yellow-50 border-2 border-yellow-400 rounded-lg">

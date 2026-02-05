@@ -147,6 +147,41 @@ function getBookingForDate(dateStr) {
     });
 }
 
+// Check if date is a checkout day (last day of booking - when guest leaves)
+function isCheckoutDay(dateStr) {
+    return bookingsData.find(booking => {
+        const end = new Date(booking.endDate + 'T00:00:00');
+        const check = new Date(dateStr + 'T00:00:00');
+        // endDate is exclusive (first available day), so checkout is the day before
+        const checkoutDate = new Date(end);
+        checkoutDate.setDate(checkoutDate.getDate() - 1);
+        return check.getTime() === checkoutDate.getTime();
+    });
+}
+
+// Check if date is a checkin day (first day of booking)
+function isCheckinDay(dateStr) {
+    return bookingsData.find(booking => {
+        const start = new Date(booking.startDate + 'T00:00:00');
+        const check = new Date(dateStr + 'T00:00:00');
+        return check.getTime() === start.getTime();
+    });
+}
+
+// Get color for category
+function getCategoryColor(category) {
+    if (!category) return '#9C27B0'; // owner-reservation purple
+    
+    const categoryLower = category.toLowerCase();
+    if (categoryLower.includes('guest')) return '#1976d2'; // blue
+    if (categoryLower.includes('golf')) return '#8BC34A'; // green
+    if (categoryLower.includes('ota')) return '#FF9800'; // orange
+    if (categoryLower.includes('owner') && categoryLower.includes('referral')) return '#E91E63'; // pink
+    if (categoryLower.includes('owner')) return '#9C27B0'; // purple
+    if (categoryLower.includes('complimentary')) return '#FFC107'; // amber
+    return '#84fab0'; // available/default
+}
+
 // Generate calendar for current month
 function generateCalendar() {
     const year = currentDate.getFullYear();
@@ -183,16 +218,29 @@ function generateCalendar() {
     // Add days of the month
     for (let day = 1; day <= numDays; day++) {
         const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const booking = getBookingForDate(dateStr);
+        const checkoutBooking = isCheckoutDay(dateStr);
+        const checkinBooking = isCheckinDay(dateStr);
         const holiday = getHolidayForDate(dateStr, year);
         
-        // Debug logging for September
-        if (month === 8 && booking) {
-            console.log(`Sept ${day}: booking found`, booking);
+        // Always show checkout/checkin markers when they exist
+        const hasCheckoutOrCheckin = checkoutBooking || checkinBooking;
+        
+        // Get booking for styling purposes
+        const booking = getBookingForDate(dateStr);
+        
+        // Debug logging for July 2025
+        if (year === 2025 && month === 6 && day >= 6 && day <= 8) {
+            console.log(`July ${day}: booking=${!!booking}, checkout=${!!checkoutBooking}, checkin=${!!checkinBooking}`);
+            if (booking) console.log(`  booking:`, booking);
+            if (checkoutBooking) console.log(`  checkout:`, checkoutBooking);
+            if (checkinBooking) console.log(`  checkin:`, checkinBooking);
         }
         
         // Determine CSS class based on booking category
         let dayClass = 'available';
+        let checkoutColor = '#e5e7eb'; // default gray
+        let checkinColor = '#e5e7eb';
+        
         if (booking && booking.category) {
             const category = booking.category.toLowerCase().replace(/ /g, '-');
             dayClass = category;
@@ -202,8 +250,30 @@ function generateCalendar() {
             console.warn(`Booking without category on ${dateStr}`, booking);
         }
         
+        // Get colors for checkout/checkin visualization
+        if (checkoutBooking) {
+            checkoutColor = getCategoryColor(checkoutBooking.category);
+        }
+        if (checkinBooking) {
+            checkinColor = getCategoryColor(checkinBooking.category);
+        }
+        
         const dayElement = document.createElement('div');
-        dayElement.className = `calendar-day rounded-lg shadow p-3 ${dayClass}`;
+        let splitClass = '';
+        if (checkoutBooking && checkinBooking) {
+            splitClass = 'split-day-both';
+            dayClass = ''; // Clear default class
+        } else if (checkoutBooking) {
+            splitClass = 'split-day-checkout';
+            dayClass = ''; // Clear default class
+        } else if (checkinBooking) {
+            splitClass = 'split-day-checkin';
+            dayClass = ''; // Clear default class
+        }
+        
+        dayElement.className = `calendar-day rounded-lg shadow p-3 ${dayClass} ${splitClass}`;
+        dayElement.style.setProperty('--checkout-color', checkoutColor);
+        dayElement.style.setProperty('--checkin-color', checkinColor);
         
         // Add holiday marker if it's a holiday
         if (holiday) {
@@ -221,7 +291,40 @@ function generateCalendar() {
         dayElement.appendChild(dayNumber);
         
         // Status and category
-        if (booking) {
+        if (hasCheckoutOrCheckin) {
+            // Show category badges for checkout and/or checkin
+            if (checkoutBooking && checkinBooking) {
+                // Both checkout and checkin - show both categories
+                const categoryContainer = document.createElement('div');
+                categoryContainer.className = 'text-xs mt-1';
+                
+                const checkoutBadge = document.createElement('div');
+                checkoutBadge.className = 'category-badge mb-1';
+                checkoutBadge.textContent = checkoutBooking.category || 'Owner';
+                checkoutBadge.title = `${checkoutBooking.category || 'Owner'} checkout (10 AM)`;
+                categoryContainer.appendChild(checkoutBadge);
+                
+                const checkinBadge = document.createElement('div');
+                checkinBadge.className = 'category-badge';
+                checkinBadge.textContent = checkinBooking.category || 'Owner';
+                checkinBadge.title = `${checkinBooking.category || 'Owner'} checkin (3 PM)`;
+                categoryContainer.appendChild(checkinBadge);
+                
+                dayElement.appendChild(categoryContainer);
+            } else if (checkoutBooking) {
+                const categoryBadge = document.createElement('div');
+                categoryBadge.className = 'category-badge';
+                categoryBadge.textContent = checkoutBooking.category || 'Owner';
+                categoryBadge.title = `${checkoutBooking.category || 'Owner'} checkout (10 AM)`;
+                dayElement.appendChild(categoryBadge);
+            } else if (checkinBooking) {
+                const categoryBadge = document.createElement('div');
+                categoryBadge.className = 'category-badge';
+                categoryBadge.textContent = checkinBooking.category || 'Owner';
+                categoryBadge.title = `${checkinBooking.category || 'Owner'} checkin (3 PM)`;
+                dayElement.appendChild(categoryBadge);
+            }
+        } else if (booking) {
             const categoryBadge = document.createElement('div');
             categoryBadge.className = 'category-badge';
             categoryBadge.textContent = booking.category || 'Owner Reservation';
