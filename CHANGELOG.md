@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/Jmainguy/condo/compare/v1.2.0...v1.2.1) (2026-02-05)
+
+
+### Bug Fixes
+
+* correct issue in goreleaser ([c66863e](https://github.com/Jmainguy/condo/commit/c66863ee94ba0ddd084d0c6328304130ce2ee59c))
+
 ## [1.2.0](https://github.com/Jmainguy/condo/compare/v1.1.0...v1.2.0) (2026-02-05)
 
 
