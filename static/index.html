@@ -71,13 +71,66 @@
             position: relative;
         }
         .split-day-checkout {
-            background: linear-gradient(135deg, var(--checkout-color) 0%, var(--checkout-color) 50%, transparent 50%, transparent 100%) !important;
+            background: linear-gradient(135deg, var(--checkout-color) 0%, var(--checkout-color) 50%, #84fab0 50%, #8fd3f4 100%) !important;
+            color: #1f2937;
         }
         .split-day-checkin {
-            background: linear-gradient(135deg, transparent 0%, transparent 50%, var(--checkin-color) 50%, var(--checkin-color) 100%) !important;
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 50%, var(--checkin-color) 50%, var(--checkin-color) 100%) !important;
+            color: #1f2937;
         }
         .split-day-both {
             background: linear-gradient(135deg, var(--checkout-color) 0%, var(--checkout-color) 50%, var(--checkin-color) 50%, var(--checkin-color) 100%) !important;
+        }
+        .calendar-day.clickable {
+            cursor: pointer;
+        }
+        .calendar-day.clickable:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.2s;
+        }
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            animation: slideDown 0.3s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-close {
+            float: right;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: #9ca3af;
+        }
+        .modal-close:hover {
+            color: #374151;
         }
     </style>
 </head>
@@ -231,6 +284,17 @@
         <div id="error" class="hidden text-center py-12">
             <div class="text-red-500 text-xl mb-4">⚠️ Error loading calendar</div>
             <p class="text-gray-600">Please try refreshing the page</p>
+        </div>
+    </div>
+
+    <!-- Booking Details Modal -->
+    <div id="bookingModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <h2 class="text-2xl font-bold mb-4 text-gray-800" id="modalTitle">Reservation Details</h2>
+            <div id="modalBody" class="space-y-3">
+                <!-- Content will be inserted by JavaScript -->
+            </div>
         </div>
     </div>
 

@@ -114,16 +114,35 @@ func main() {
 	http.HandleFunc("/api/health", handleHealth)
 	http.HandleFunc("/api/debug/reservation-report", handleDebugReservationReport)
 
-	// Serve embedded static files
+	// Serve embedded static files with logging
 	staticFS, err := fs.Sub(staticFiles, "static")
 	if err != nil {
 		log.Fatal(err)
 	}
-	http.Handle("/", http.FileServer(http.FS(staticFS)))
+	http.Handle("/", loggingMiddleware(http.FileServer(http.FS(staticFS))))
 
 	addr := "0.0.0.0:" + config.Port
 	log.Printf("Server starting on http://%s", addr)
 	log.Fatal(http.ListenAndServe(addr, nil))
+}
+
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Only log requests to the root path
+		if r.URL.Path == "/" {
+			// Get client IP, checking X-Forwarded-For header first (for proxies)
+			clientIP := r.Header.Get("X-Forwarded-For")
+			if clientIP == "" {
+				clientIP = r.Header.Get("X-Real-IP")
+			}
+			if clientIP == "" {
+				clientIP = r.RemoteAddr
+			}
+
+			log.Printf("Request: %s %s from %s", r.Method, r.URL.Path, clientIP)
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 func initializeHTTPClient(config ServerConfig) error {

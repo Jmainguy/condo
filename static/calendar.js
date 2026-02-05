@@ -182,6 +182,7 @@ function getCategoryColor(category) {
     return '#84fab0'; // available/default
 }
 
+// Show booking details modal
 // Generate calendar for current month
 function generateCalendar() {
     const year = currentDate.getFullYear();
@@ -275,6 +276,16 @@ function generateCalendar() {
         dayElement.style.setProperty('--checkout-color', checkoutColor);
         dayElement.style.setProperty('--checkin-color', checkinColor);
         
+        // Make clickable if there's a booking or checkout/checkin
+        if (booking || checkoutBooking || checkinBooking) {
+            dayElement.classList.add('clickable');
+            dayElement.onclick = () => {
+                // Show the primary booking for this day
+                const displayBooking = booking || checkinBooking || checkoutBooking;
+                showBookingModal(displayBooking, dateStr);
+            };
+        }
+        
         // Add holiday marker if it's a holiday
         if (holiday) {
             const holidayMarker = document.createElement('div');
@@ -334,6 +345,37 @@ function generateCalendar() {
             availableText.className = 'text-sm opacity-75 mt-2';
             availableText.textContent = 'Available';
             dayElement.appendChild(availableText);
+        }
+        
+        // Make clickable if there's a booking or checkout/checkin
+        if (booking || checkoutBooking || checkinBooking) {
+            dayElement.classList.add('clickable');
+            
+            // For split days (both checkout and checkin), handle clicks differently
+            if (checkoutBooking && checkinBooking) {
+                dayElement.onclick = (event) => {
+                    // Get click position relative to the element
+                    const rect = dayElement.getBoundingClientRect();
+                    const x = event.clientX - rect.left;
+                    const y = event.clientY - rect.top;
+                    
+                    // Check if click is in top-left half (checkout) or bottom-right half (checkin)
+                    // Using diagonal: if x + y < width (roughly half the diagonal)
+                    const isTopLeft = (x + y) < rect.width;
+                    
+                    if (isTopLeft) {
+                        showBookingModal(checkoutBooking, dateStr);
+                    } else {
+                        showBookingModal(checkinBooking, dateStr);
+                    }
+                };
+            } else {
+                dayElement.onclick = () => {
+                    // Show the primary booking for this day
+                    const displayBooking = booking || checkinBooking || checkoutBooking;
+                    showBookingModal(displayBooking, dateStr);
+                };
+            }
         }
         
         calendarDays.appendChild(dayElement);
@@ -417,3 +459,76 @@ async function init() {
 
 // Start the app
 init();
+
+// Show booking details modal
+function showBookingModal(booking, dateStr) {
+    const modal = document.getElementById('bookingModal');
+    const modalBody = document.getElementById('modalBody');
+    const modalTitle = document.getElementById('modalTitle');
+    
+    // Calculate number of days
+    const start = new Date(booking.startDate + 'T00:00:00');
+    const end = new Date(booking.endDate + 'T00:00:00');
+    
+    // Calculate actual checkout date (endDate is exclusive, so checkout is day before)
+    const checkoutDate = new Date(end);
+    checkoutDate.setDate(checkoutDate.getDate() - 1);
+    const checkoutDateStr = checkoutDate.toISOString().split('T')[0];
+    
+    // Calculate nights: from check-in to checkout date
+    const days = Math.round((checkoutDate - start) / (1000 * 60 * 60 * 24));
+    
+    // Format dates
+    const formatDate = (dateStr) => {
+        const date = new Date(dateStr + 'T00:00:00');
+        return date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    };
+    
+    modalTitle.textContent = `${booking.category || 'Reservation'}`;
+    
+    modalBody.innerHTML = `
+        <div class="bg-gray-50 p-4 rounded-lg">
+            <div class="flex items-center gap-2 mb-3">
+                <div class="w-4 h-4 rounded" style="background: ${getCategoryColor(booking.category)}"></div>
+                <span class="font-semibold text-gray-700">${booking.category || 'Booking'}</span>
+            </div>
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Check-in:</span>
+                    <span class="font-medium text-gray-800">${formatDate(booking.startDate)} <span class="text-blue-600">(3:00 PM)</span></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Check-out:</span>
+                    <span class="font-medium text-gray-800">${formatDate(checkoutDateStr)} <span class="text-blue-600">(10:00 AM)</span></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Duration:</span>
+                    <span class="font-medium text-gray-800">${days} night${days !== 1 ? 's' : ''}</span>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    modal.classList.add('show');
+}
+
+// Close modal
+function closeModal() {
+    const modal = document.getElementById('bookingModal');
+    modal.classList.remove('show');
+}
+
+// Close modal when clicking outside
+window.onclick = function(event) {
+    const modal = document.getElementById('bookingModal');
+    if (event.target === modal) {
+        closeModal();
+    }
+}
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeModal();
+    }
+});
