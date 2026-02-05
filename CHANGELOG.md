@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.0](https://github.com/Jmainguy/condo/compare/v1.1.0...v1.2.0) (2026-02-05)
+
+
+### Features
+
+* add busy season, refactor to multiple files ([6a176dd](https://github.com/Jmainguy/condo/commit/6a176dd2868537ea9ea3e8ed03bea68bd8785d0c))
+* support modals showing length of stay ([daf5044](https://github.com/Jmainguy/condo/commit/daf5044bf4c5ffad62e568a1ed69add273c122be))
+
 ## [1.1.0](https://github.com/Jmainguy/condo/compare/v1.0.0...v1.1.0) (2026-02-05)
 
 
