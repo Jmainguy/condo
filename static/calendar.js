@@ -4,83 +4,6 @@ let bookingsData = [];
 let availableYears = [];
 let selectedYear = new Date().getFullYear();
 
-// US Federal Holidays
-function getHolidays(year) {
-    const holidays = [];
-    
-    // Fixed date holidays
-    holidays.push({ date: `${year}-01-01`, name: "New Year's Day", emoji: "🎊" });
-    holidays.push({ date: `${year}-06-19`, name: "Juneteenth", emoji: "✊🏿" });
-    holidays.push({ date: `${year}-07-04`, name: "Independence Day", emoji: "🎆" });
-    holidays.push({ date: `${year}-11-11`, name: "Veterans Day", emoji: "🇺🇸" });
-    holidays.push({ date: `${year}-12-25`, name: "Christmas", emoji: "🎄" });
-    
-    // MLK Day - 3rd Monday in January
-    holidays.push({ date: getNthWeekdayOfMonth(year, 0, 1, 3), name: "MLK Day", emoji: "✊" });
-    
-    // Presidents Day - 3rd Monday in February
-    holidays.push({ date: getNthWeekdayOfMonth(year, 1, 1, 3), name: "Presidents Day", emoji: "🎩" });
-    
-    // Memorial Day - Last Monday in May
-    holidays.push({ date: getLastWeekdayOfMonth(year, 4, 1), name: "Memorial Day", emoji: "🎖️" });
-    
-    // Labor Day - 1st Monday in September
-    holidays.push({ date: getNthWeekdayOfMonth(year, 8, 1, 1), name: "Labor Day", emoji: "⚒️" });
-    
-    // Thanksgiving - 4th Thursday in November
-    holidays.push({ date: getNthWeekdayOfMonth(year, 10, 4, 4), name: "Thanksgiving", emoji: "🦃" });
-    
-    // Easter (approximate using formula)
-    const easter = getEasterDate(year);
-    holidays.push({ date: easter, name: "Easter", emoji: "🐰" });
-    
-    return holidays;
-}
-
-// Get Nth weekday of a month (e.g., 3rd Monday)
-function getNthWeekdayOfMonth(year, month, weekday, n) {
-    const firstDay = new Date(year, month, 1);
-    let firstWeekday = firstDay.getDay();
-    let diff = (weekday - firstWeekday + 7) % 7;
-    let date = 1 + diff + (n - 1) * 7;
-    return `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
-}
-
-// Get last weekday of a month
-function getLastWeekdayOfMonth(year, month, weekday) {
-    const lastDay = new Date(year, month + 1, 0);
-    let lastDate = lastDay.getDate();
-    let lastWeekday = lastDay.getDay();
-    let diff = (lastWeekday - weekday + 7) % 7;
-    let date = lastDate - diff;
-    return `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
-}
-
-// Calculate Easter using Computus algorithm
-function getEasterDate(year) {
-    const a = year % 19;
-    const b = Math.floor(year / 100);
-    const c = year % 100;
-    const d = Math.floor(b / 4);
-    const e = b % 4;
-    const f = Math.floor((b + 8) / 25);
-    const g = Math.floor((b - f + 1) / 3);
-    const h = (19 * a + b - d - g + 15) % 30;
-    const i = Math.floor(c / 4);
-    const k = c % 4;
-    const l = (32 + 2 * e + 2 * i - h - k) % 7;
-    const m = Math.floor((a + 11 * h + 22 * l) / 451);
-    const month = Math.floor((h + l - 7 * m + 114) / 31);
-    const day = ((h + l - 7 * m + 114) % 31) + 1;
-    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-}
-
-// Check if a date is a holiday
-function getHolidayForDate(dateStr, year) {
-    const holidays = getHolidays(year);
-    return holidays.find(h => h.date === dateStr);
-}
-
 // Fetch available years
 async function fetchYears() {
     try {
@@ -142,8 +65,8 @@ function getBookingForDate(dateStr) {
         const end = new Date(booking.endDate + 'T00:00:00');
         const check = new Date(dateStr + 'T00:00:00');
         
-        // Check if date is within the booking range (inclusive of start, exclusive of end)
-        return check >= start && check < end;
+        // Check if date is within the booking range (inclusive of both start and end)
+        return check >= start && check <= end;
     });
 }
 
@@ -152,10 +75,8 @@ function isCheckoutDay(dateStr) {
     return bookingsData.find(booking => {
         const end = new Date(booking.endDate + 'T00:00:00');
         const check = new Date(dateStr + 'T00:00:00');
-        // endDate is exclusive (first available day), so checkout is the day before
-        const checkoutDate = new Date(end);
-        checkoutDate.setDate(checkoutDate.getDate() - 1);
-        return check.getTime() === checkoutDate.getTime();
+        // endDate is now the actual checkout date
+        return check.getTime() === end.getTime();
     });
 }
 
@@ -182,14 +103,27 @@ function getCategoryColor(category) {
     return '#84fab0'; // available/default
 }
 
-// Show booking details modal
+// Check if a date is in busy season (Memorial Day through Labor Day)
+function isInBusySeason(dateStr, year) {
+    const yearHolidays = getHolidays(year);
+    const memorialDay = yearHolidays.find(h => h.name === 'Memorial Day');
+    const labourDay = yearHolidays.find(h => h.name === 'Labour Day');
+    
+    if (!memorialDay || !labourDay) {
+        return false;
+    }
+    
+    const date = new Date(dateStr + 'T00:00:00');
+    const startDate = new Date(memorialDay.date + 'T00:00:00');
+    const endDate = new Date(labourDay.date + 'T00:00:00');
+    
+    return date >= startDate && date <= endDate;
+}
+
 // Generate calendar for current month
 function generateCalendar() {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
-    
-    // Debug: Log current state
-    console.log(`Generating calendar for ${year}-${month + 1}, bookings:`, bookingsData.length);
     
     // Update month header
     const monthNames = [
@@ -229,18 +163,21 @@ function generateCalendar() {
         // Get booking for styling purposes
         const booking = getBookingForDate(dateStr);
         
-        // Debug logging for July 2025
-        if (year === 2025 && month === 6 && day >= 6 && day <= 8) {
-            console.log(`July ${day}: booking=${!!booking}, checkout=${!!checkoutBooking}, checkin=${!!checkinBooking}`);
-            if (booking) console.log(`  booking:`, booking);
-            if (checkoutBooking) console.log(`  checkout:`, checkoutBooking);
-            if (checkinBooking) console.log(`  checkin:`, checkinBooking);
-        }
-        
         // Determine CSS class based on booking category
         let dayClass = 'available';
         let checkoutColor = '#e5e7eb'; // default gray
         let checkinColor = '#e5e7eb';
+        let availableColorStart = '#84fab0';
+        let availableColorEnd = '#8fd3f4';
+        
+        // Check if this is busy season for available dates
+        const inBusySeason = isInBusySeason(dateStr, year);
+        
+        // Set premium colors for available portion if in busy season
+        if (inBusySeason) {
+            availableColorStart = '#ffd700';
+            availableColorEnd = '#ffed4e';
+        }
         
         if (booking && booking.category) {
             const category = booking.category.toLowerCase().replace(/ /g, '-');
@@ -249,6 +186,9 @@ function generateCalendar() {
             // Booking exists but no category - treat as owner reservation
             dayClass = 'owner-reservation';
             console.warn(`Booking without category on ${dateStr}`, booking);
+        } else if (!booking && !hasCheckoutOrCheckin && inBusySeason) {
+            // Available during busy season - premium
+            dayClass = 'premium-available';
         }
         
         // Get colors for checkout/checkin visualization
@@ -275,16 +215,8 @@ function generateCalendar() {
         dayElement.className = `calendar-day rounded-lg shadow p-3 ${dayClass} ${splitClass}`;
         dayElement.style.setProperty('--checkout-color', checkoutColor);
         dayElement.style.setProperty('--checkin-color', checkinColor);
-        
-        // Make clickable if there's a booking or checkout/checkin
-        if (booking || checkoutBooking || checkinBooking) {
-            dayElement.classList.add('clickable');
-            dayElement.onclick = () => {
-                // Show the primary booking for this day
-                const displayBooking = booking || checkinBooking || checkoutBooking;
-                showBookingModal(displayBooking, dateStr);
-            };
-        }
+        dayElement.style.setProperty('--available-color-start', availableColorStart);
+        dayElement.style.setProperty('--available-color-end', availableColorEnd);
         
         // Add holiday marker if it's a holiday
         if (holiday) {
@@ -383,7 +315,7 @@ function generateCalendar() {
 }
 
 // Navigation handlers
-document.getElementById('prevMonth').addEventListener('click', () => {
+document.getElementById('prevMonth').addEventListener('click', async () => {
     currentDate.setMonth(currentDate.getMonth() - 1);
     const newYear = currentDate.getFullYear();
     
@@ -392,7 +324,8 @@ document.getElementById('prevMonth').addEventListener('click', () => {
         if (availableYears.includes(String(newYear))) {
             selectedYear = newYear;
             document.getElementById('yearSelect').value = String(newYear);
-            fetchBookings(newYear).then(() => generateCalendar());
+            await fetchBookings(newYear);
+            generateCalendar();
         } else {
             // Year not available, revert
             currentDate.setMonth(currentDate.getMonth() + 1);
@@ -402,7 +335,7 @@ document.getElementById('prevMonth').addEventListener('click', () => {
     }
 });
 
-document.getElementById('nextMonth').addEventListener('click', () => {
+document.getElementById('nextMonth').addEventListener('click', async () => {
     currentDate.setMonth(currentDate.getMonth() + 1);
     const newYear = currentDate.getFullYear();
     
@@ -411,7 +344,8 @@ document.getElementById('nextMonth').addEventListener('click', () => {
         if (availableYears.includes(String(newYear))) {
             selectedYear = newYear;
             document.getElementById('yearSelect').value = String(newYear);
-            fetchBookings(newYear).then(() => generateCalendar());
+            await fetchBookings(newYear);
+            generateCalendar();
         } else {
             // Year not available, revert
             currentDate.setMonth(currentDate.getMonth() - 1);
@@ -422,10 +356,11 @@ document.getElementById('nextMonth').addEventListener('click', () => {
 });
 
 // Year selection handler
-document.getElementById('yearSelect').addEventListener('change', (e) => {
+document.getElementById('yearSelect').addEventListener('change', async (e) => {
     selectedYear = parseInt(e.target.value);
     currentDate = new Date(selectedYear, currentDate.getMonth(), 1);
-    fetchBookings(selectedYear).then(() => generateCalendar());
+    await fetchBookings(selectedYear);
+    generateCalendar();
 });
 
 // Initialize calendar
@@ -470,13 +405,11 @@ function showBookingModal(booking, dateStr) {
     const start = new Date(booking.startDate + 'T00:00:00');
     const end = new Date(booking.endDate + 'T00:00:00');
     
-    // Calculate actual checkout date (endDate is exclusive, so checkout is day before)
-    const checkoutDate = new Date(end);
-    checkoutDate.setDate(checkoutDate.getDate() - 1);
-    const checkoutDateStr = checkoutDate.toISOString().split('T')[0];
+    // endDate is now the actual checkout date
+    const checkoutDateStr = booking.endDate;
     
     // Calculate nights: from check-in to checkout date
-    const days = Math.round((checkoutDate - start) / (1000 * 60 * 60 * 24));
+    const days = Math.round((end - start) / (1000 * 60 * 60 * 24));
     
     // Format dates
     const formatDate = (dateStr) => {
