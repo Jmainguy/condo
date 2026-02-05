@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/Jmainguy/condo/compare/v1.0.0...v1.1.0) (2026-02-05)
+
+
+### Features
+
+* support split days ([ab855fa](https://github.com/Jmainguy/condo/commit/ab855faa4c5a42055c7d39af792284ea6eec6dba))
+
 ## 1.0.0 (2026-02-04)
 
 
