@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.1](https://github.com/Jmainguy/condo/compare/v1.3.0...v1.3.1) (2026-08-04)
+
+
+### Bug Fixes
+
+* **ci:** republish tags and bump go to 1.26 ([84a1c5f](https://github.com/Jmainguy/condo/commit/84a1c5fa7a1f4e490437de2a77f803ac9f643ecd))
+
 ## [1.3.0](https://github.com/Jmainguy/condo/compare/v1.2.1...v1.3.0) (2026-08-04)
 
 
