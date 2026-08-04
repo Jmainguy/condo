@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/Jmainguy/condo/compare/v1.2.1...v1.3.0) (2026-08-04)
+
+
+### Features
+
+* add phone number ([0657eaf](https://github.com/Jmainguy/condo/commit/0657eaf496a225d6d5f24926f094bf47f05472fa))
+
 ## [1.2.1](https://github.com/Jmainguy/condo/compare/v1.2.0...v1.2.1) (2026-02-05)
 
 
