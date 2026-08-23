@@ -17,11 +17,16 @@ permissions:
 
 jobs:
   release-please:
-    uses: Jmainguy/golang-workflows/.github/workflows/golang-release.yml@v1
+    uses: Jmainguy/golang-workflows/.github/workflows/golang-release.yml@v2.1.0
     secrets:
       token: ${{ secrets.GITHUB_TOKEN }}
       docker_username: ${{ secrets.DOCKER_USERNAME }}
       docker_password: ${{ secrets.DOCKER_PASSWORD }}
+      notation_private_key: ${{ secrets.NOTATION_PRIVATE_KEY }}
+      notation_certificate_chain: ${{ secrets.NOTATION_CERTIFICATE_CHAIN }}
+      notation_ca_certificate: ${{ secrets.NOTATION_CA_CERTIFICATE }}
     with:
       docker_url: zot.soh.re
+      registry_namespace: jmainguy
+      image_name: condo
       tag: ${{ inputs.tag || '' }}

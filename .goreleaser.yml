@@ -13,9 +13,6 @@ git:
 snapshot:
   version_template: "{{ .Tag }}-next"
 
-before:
-  hooks:
-    - go mod tidy
 builds:
 - binary: condo
   main: .
@@ -52,12 +49,12 @@ kos:
     # Base image to publish to use.
     #
     # Default: 'cgr.dev/chainguard/static'.
-    base_image: chainguard/wolfi-base
+    base_image: cgr.dev/chainguard/static@sha256:f68e3a8244c7d0f4cd56635aaff8e6a533cf6cc3850d8fb339567a5782d6a0b0
 
     # Repositories to push to (uses new plural format)
     # Can also be set via KO_DOCKER_REPO environment variable
     repositories:
-      - zot.soh.re/condo
+      - zot.soh.re/jmainguy/condo
 
     # Platforms to build and publish.
     #
@@ -98,12 +95,12 @@ kos:
       org.opencontainers.image.title: "{{.ProjectName}}"
       org.opencontainers.image.revision: "{{.FullCommit}}"
       org.opencontainers.image.version: "{{.Version}}"
-      org.opencontainers.image.authors: "Jonathan Seth Mainguy <jon@jmainguy.com>"
-      org.opencontainers.image.vendor: Mainguy
+      org.opencontainers.image.authors: "Jonathan Seth Mainguy <jon@soh.re>"
+      org.opencontainers.image.vendor: Jmainguy
       org.opencontainers.image.url: "https://github.com/jmainguy/condo"
       org.opencontainers.image.source: "https://github.com/jmainguy/condo"
       org.opencontainers.image.description: "Myrtle Beach condo availability calendar - Elliott Owner Portal scraper"
-      org.opencontainers.image.licenses: "GPL-2.0"
+      org.opencontainers.image.licenses: "GPL-2.0-only"
       
     # Bare uses a tag on the $KO_DOCKER_REPO without anything additional.
     bare: true
