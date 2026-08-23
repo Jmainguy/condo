@@ -1,5 +1,16 @@
 # Changelog
 
+## [2.0.0](https://github.com/Jmainguy/condo/compare/v1.3.1...v2.0.0) (2026-08-23)
+
+
+### ⚠ BREAKING CHANGES
+
+* publish signed namespaced image with Go 1.27
+
+### Features
+
+* publish signed namespaced image with Go 1.27 ([f57dcfb](https://github.com/Jmainguy/condo/commit/f57dcfbd9f631033d63d67c55e613c2b94c79bf5))
+
 ## [1.3.1](https://github.com/Jmainguy/condo/compare/v1.3.0...v1.3.1) (2026-08-04)
 
 
