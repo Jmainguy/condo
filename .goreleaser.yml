@@ -54,7 +54,7 @@ kos:
     # Repositories to push to (uses new plural format)
     # Can also be set via KO_DOCKER_REPO environment variable
     repositories:
-      - zot.soh.re/jmainguy/condo
+      - zot.soh.re/jmainguy
 
     # Platforms to build and publish.
     #
