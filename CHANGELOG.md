@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.0.3](https://github.com/Jmainguy/condo/compare/v2.0.2...v2.0.3) (2026-08-23)
+
+
+### Bug Fixes
+
+* publish project OCI annotations ([f8c13d0](https://github.com/Jmainguy/condo/commit/f8c13d0e1a1d78667426d79dbe42ac00248bafcc))
+
 ## [2.0.2](https://github.com/Jmainguy/condo/compare/v2.0.1...v2.0.2) (2026-08-23)
 
 
