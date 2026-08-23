@@ -101,6 +101,17 @@ kos:
       org.opencontainers.image.source: "https://github.com/jmainguy/condo"
       org.opencontainers.image.description: "Myrtle Beach condo availability calendar - Elliott Owner Portal scraper"
       org.opencontainers.image.licenses: "GPL-2.0-only"
+    annotations:
+      org.opencontainers.image.created: "{{.Date}}"
+      org.opencontainers.image.title: "condo"
+      org.opencontainers.image.revision: "{{.FullCommit}}"
+      org.opencontainers.image.version: "{{.Version}}"
+      org.opencontainers.image.authors: "Jonathan Seth Mainguy <jon@soh.re>"
+      org.opencontainers.image.vendor: "Jmainguy"
+      org.opencontainers.image.url: "https://github.com/jmainguy/condo"
+      org.opencontainers.image.source: "https://github.com/jmainguy/condo"
+      org.opencontainers.image.description: "Myrtle Beach condo availability calendar - Elliott Owner Portal scraper"
+      org.opencontainers.image.licenses: "GPL-2.0-only"
       
     # Bare uses a tag on the $KO_DOCKER_REPO without anything additional.
     bare: true
